@@ -2,8 +2,6 @@
 
 <h2>All Cars</h2>
 
-<a class="btn btn-success" href="@Url.Action("PostCar", "Cars")">Post New Car</a>
-
 <table class="table">
     <thead>
         <tr>
@@ -23,8 +21,13 @@
                 <td>@car.Model</td>
                 <td>@car.Year</td>
                 <td>@car.PricePerDay</td>
-                <td>@car.Location</td>
-                <td><img src="@car.ImageUrl" width="100" /></td>
+                <td>@(car.City?.Name ?? "No City")</td>
+                <td>
+                    @if (car.Image != null)
+                    {
+                        <img src="data:image/jpeg;base64,@Convert.ToBase64String(car.Image)" alt="Car Image" />
+                    }
+                </td>
             </tr>
         }
     </tbody>

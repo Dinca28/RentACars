@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RentACars.Data;
 
@@ -11,9 +12,11 @@ using RentACars.Data;
 namespace RentACars.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250410144449_AddCityToCar")]
+    partial class AddCityToCar
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -224,23 +227,6 @@ namespace RentACars.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("RentACars.Models.Brand", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Brands");
-                });
-
             modelBuilder.Entity("RentACars.Models.Car", b =>
                 {
                     b.Property<int>("Id")
@@ -249,23 +235,26 @@ namespace RentACars.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("BrandId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CityId")
-                        .HasColumnType("int");
-
-                    b.Property<byte[]>("Image")
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<int?>("ModelId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
+                    b.Property<string>("Brand")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("PricePerDay")
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("PricePerDay")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Year")
@@ -273,13 +262,55 @@ namespace RentACars.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BrandId");
-
                     b.HasIndex("CityId");
 
-                    b.HasIndex("ModelId");
-
                     b.ToTable("Cars");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Brand = "BMW",
+                            CityId = 0,
+                            ImageUrl = "https://link-to-bmw.jpg",
+                            Location = "Dobrich",
+                            Model = "X5",
+                            PricePerDay = 100m,
+                            Year = 2022
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Brand = "Mercedes",
+                            CityId = 0,
+                            ImageUrl = "https://link-to-mercedes.jpg",
+                            Location = "Varna",
+                            Model = "C-Class",
+                            PricePerDay = 90m,
+                            Year = 2021
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Brand = "Audi",
+                            CityId = 0,
+                            ImageUrl = "https://link-to-audi.jpg",
+                            Location = "Sofia",
+                            Model = "A4",
+                            PricePerDay = 80m,
+                            Year = 2020
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Brand = "Toyota",
+                            CityId = 0,
+                            ImageUrl = "https://link-to-toyota.jpg",
+                            Location = "Plovdiv",
+                            Model = "Corolla",
+                            PricePerDay = 70m,
+                            Year = 2023
+                        });
                 });
 
             modelBuilder.Entity("RentACars.Models.City", b =>
@@ -290,35 +321,13 @@ namespace RentACars.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Cities");
-                });
-
-            modelBuilder.Entity("RentACars.Models.Model", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BrandId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BrandId");
-
-                    b.ToTable("Models");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -374,52 +383,16 @@ namespace RentACars.Data.Migrations
 
             modelBuilder.Entity("RentACars.Models.Car", b =>
                 {
-                    b.HasOne("RentACars.Models.Brand", "Brand")
-                        .WithMany("Cars")
-                        .HasForeignKey("BrandId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("RentACars.Models.City", "City")
                         .WithMany("Cars")
                         .HasForeignKey("CityId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("RentACars.Models.Model", "Model")
-                        .WithMany("Cars")
-                        .HasForeignKey("ModelId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Brand");
-
-                    b.Navigation("City");
-
-                    b.Navigation("Model");
-                });
-
-            modelBuilder.Entity("RentACars.Models.Model", b =>
-                {
-                    b.HasOne("RentACars.Models.Brand", "Brand")
-                        .WithMany("Models")
-                        .HasForeignKey("BrandId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Brand");
-                });
-
-            modelBuilder.Entity("RentACars.Models.Brand", b =>
-                {
-                    b.Navigation("Cars");
-
-                    b.Navigation("Models");
+                    b.Navigation("City");
                 });
 
             modelBuilder.Entity("RentACars.Models.City", b =>
-                {
-                    b.Navigation("Cars");
-                });
-
-            modelBuilder.Entity("RentACars.Models.Model", b =>
                 {
                     b.Navigation("Cars");
                 });

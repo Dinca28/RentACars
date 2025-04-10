@@ -33,7 +33,14 @@
     {
         <div class="col-md-3">
             <div class="card mb-4 shadow-sm">
-                <img src="@car.ImageUrl" class="card-img-top" alt="@car.Brand @car.Model">
+                @if (car.Image != null && car.Image.Length > 0)
+                {
+                    <img src="data:image/jpeg;base64,@Convert.ToBase64String(car.Image)" class="card-img-top" alt="@car.Brand @car.Model">
+                }
+                else
+                {
+                    <img src="https://via.placeholder.com/150" class="card-img-top" alt="No image available">
+                }
                 <div class="card-body">
                     <h5 class="card-title">@car.Brand @car.Model</h5>
                     <p class="card-text">From @car.PricePerDay$ / Day</p>

@@ -7,12 +7,18 @@
 <h1>@Model.Brand @Model.Model</h1>
 
 <div class="card mb-4">
-    <img src="@Model.ImageUrl" class="card-img-top" alt="@Model.Brand @Model.Model">
+    @if (Model.Image != null)
+    {
+        <img src="data:image/jpeg;base64,@Convert.ToBase64String(Model.Image)" alt="Car Image" />
+    }
     <div class="card-body">
-        <h5 class="card-title">@Model.Brand @Model.Model (@Model.Year)</h5>
-        <p class="card-text">Price per day: @Model.PricePerDay$</p>
-        <p class="card-text">Location: @Model.Location</p>
+        <p>Brand ID: @Model.BrandId</p>
+        <p>Model ID: @Model.ModelId</p>
+        <p>City ID: @Model.CityId</p>
+        <p>Price Per Day: @Model.PricePerDay</p>
+
         <p class="card-text">Description:</p>
+
         <a href="#" class="btn btn-primary">Rent Now</a>
     </div>
 </div>

@@ -7,16 +7,19 @@ namespace RentACars.Controllers
     public class AllCarsController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly ILogger<HomeController> _logger;
 
         public AllCarsController(ApplicationDbContext context)
         {
             _context = context;
         }
-        public IActionResult Index()
+
+        public async Task<IActionResult> Index()
         {
-            var cars = _context.Cars.ToList(); // Get all cars from the database
-            return View(cars); // Pass the list of cars to the view
+            var cars = await _context.Cars
+                .Include(c => c.City)
+                .ToListAsync();
+
+            return View(cars);
         }
     }
 }

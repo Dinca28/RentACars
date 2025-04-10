@@ -52,22 +52,56 @@ namespace RentACars.Controllers
         public IActionResult Index()
         {
             var cars = _context.Cars
-                .OrderBy(c => Guid.NewGuid()) // Randomize
-                .Take(4)                      // Take 4 random cars
+                               .Select(c => new
+                               {
+                                   c.Id,
+                                   c.BrandId,
+                                   c.ModelId,
+                                   c.CityId,
+                                   c.PricePerDay
+                               })
+                               .ToList();
+
+            // Filter cars with no NULL values in critical fields and log potential problems
+            var validCars = cars
+                            .Where(c => c.BrandId.HasValue && c.ModelId.HasValue && c.CityId.HasValue && c.PricePerDay.HasValue)
+                            .ToList();
+
+            if (validCars == null || !validCars.Any())
+            {
+                TempData["NoResults"] = "No cars available for the selected filters.";
+            }
+
+            // Map back to the Cars model if needed for further use in views
+            var finalCars = validCars.Select(c => new Car
+            {
+                Id = c.Id,
+                BrandId = c.BrandId.Value,
+                ModelId = c.ModelId.Value,
+                CityId = c.CityId.Value,
+                PricePerDay = c.PricePerDay.Value
+            }).ToList();
+
+            return View(finalCars);
+        }
+
+
+
+
+        public IActionResult Details()
+        {
+            var cars = _context.Cars
+                .Select(c => new
+                {
+                    c.Id,
+                    c.BrandId,
+                    c.ModelId,
+                    c.CityId,
+                    c.PricePerDay
+                })
                 .ToList();
 
             return View(cars);
-        }
-
-        public IActionResult Details(int id)
-        {
-            var car = _context.Cars.FirstOrDefault(c => c.Id == id);
-            if (car == null)
-            {
-                return NotFound();
-            }
-
-            return View(car);
         }
 
         public IActionResult Privacy()

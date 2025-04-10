@@ -13,17 +13,38 @@ namespace RentACars.Data
 
         public DbSet<Car> Cars { get; set; }
         public DbSet<City> Cities { get; set; }
+        public DbSet<Brand> Brands { get; set; }
+        public DbSet<Model> Models { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Car>().HasData(
-                new Car { Id = 1, Brand = "BMW", Model = "X5", Year = 2022, PricePerDay = 100, ImageUrl = "https://link-to-bmw.jpg", Location = "Dobrich" },
-                new Car { Id = 2, Brand = "Mercedes", Model = "C-Class", Year = 2021, PricePerDay = 90, ImageUrl = "https://link-to-mercedes.jpg", Location = "Varna" },
-                new Car { Id = 3, Brand = "Audi", Model = "A4", Year = 2020, PricePerDay = 80, ImageUrl = "https://link-to-audi.jpg", Location = "Sofia" },
-                new Car { Id = 4, Brand = "Toyota", Model = "Corolla", Year = 2023, PricePerDay = 70, ImageUrl = "https://link-to-toyota.jpg", Location = "Plovdiv" }
-            );
+            // Example of defining one-to-many relationships
+            modelBuilder.Entity<Car>()
+                .HasOne(c => c.Brand)
+                .WithMany(b => b.Cars)
+                .HasForeignKey(c => c.BrandId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Car>()
+                .HasOne(c => c.City)
+                .WithMany(ci => ci.Cars)
+                .HasForeignKey(c => c.CityId)
+                .OnDelete(DeleteBehavior.SetNull); // You can change the delete behavior if needed
+
+            modelBuilder.Entity<Car>()
+                .HasOne(c => c.Model)
+                .WithMany(m => m.Cars)
+                .HasForeignKey(c => c.ModelId)
+                .OnDelete(DeleteBehavior.SetNull); // Assuming you don't want cascading deletes
+
+            modelBuilder.Entity<Model>()
+                .HasOne(m => m.Brand)
+                .WithMany(b => b.Models)
+                .HasForeignKey(m => m.BrandId)
+                .OnDelete(DeleteBehavior.Cascade);
+
         }
     }
 }

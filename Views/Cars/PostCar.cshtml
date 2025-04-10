@@ -1,27 +1,119 @@
 ﻿@model RentACars.Models.Car
 
-<h2>Post a Car</h2>
+@{
+    ViewData["Title"] = "Post a Car";
+}
 
-<form asp-action="Create" method="post" enctype="multipart/form-data">
+<h1>Post a New Car</h1>
+
+<form method="post" enctype="multipart/form-data">
     <div class="form-group">
-        <label asp-for="Brand"></label>
-        <input asp-for="Brand" class="form-control" />
+        <label for="BrandId">Brand</label>
+        <select id="BrandId" name="BrandId" class="form-control" required>
+            <option value="">Select Brand</option>
+            @if (ViewBag.Brands != null)
+            {
+                foreach (var brand in ViewBag.Brands as List<RentACars.Models.Brand>)
+                {
+                    <option value="@brand.Id">@brand.Name</option>
+                }
+            }
+            else
+            {
+                <option value="">No Brands Available</option>
+            }
+        </select>
+    </div>
 
-        <label asp-for="Model"></label>
-        <input asp-for="Model" class="form-control" />
+    <div class="form-group">
+        <label for="ModelId">Model</label>
+        <select id="ModelId" name="ModelId" class="form-control" required>
+            <option value="">Select Model</option>
+            @if (ViewBag.Models != null)
+            {
+                foreach (var model in ViewBag.Models as List<RentACars.Models.Model>)
+                {
+                    <option value="@model.Id">@model.Name</option>
+                }
+            }
+            else
+            {
+                <option value="">No Models Available</option>
+            }
+        </select>
+    </div>
 
-        <label asp-for="Year"></label>
-        <input asp-for="Year" class="form-control" type="number" />
+    <div class="form-group">
+        <label for="CityId">City</label>
+        <select id="CityId" name="CityId" class="form-control" required>
+            <option value="">Select City</option>
+            @if (ViewBag.Cities != null)
+            {
+                foreach (var city in ViewBag.Cities as List<RentACars.Models.City>)
+                {
+                    <option value="@city.Id">@city.Name</option>
+                }
+            }
+            else
+            {
+                <option value="">No Cities Available</option>
+            }
+        </select>
+    </div>
 
-        <label asp-for="ImageUrl"></label>
-        <input asp-for="ImageUrl" class="form-control" />
+    <div class="form-group">
+        <label for="PricePerDay">Price Per Day</label>
+        <input type="number" id="PricePerDay" name="PricePerDay" class="form-control" value="@Model.PricePerDay" required />
+    </div>
 
-        <label asp-for="PricePerDay"></label>
-        <input asp-for="PricePerDay" class="form-control" type="number" step="0.01" />
-
-        <label asp-for="Location"></label>
-        <input asp-for="Location" class="form-control" />
+    <div class="form-group">
+        <label for="Image">Image</label>
+        <input type="file" id="Image" name="Image" class="form-control" />
     </div>
 
     <button type="submit" class="btn btn-primary">Post Car</button>
 </form>
+
+<a href="@Url.Action("Index", "Cars")" class="btn btn-secondary">Back to Car List</a>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#BrandId').change(function () {
+                var brandId = $(this).val();
+
+                if (brandId) {
+                    $('#ModelId').prop('disabled', false); // Enable the model dropdown
+
+                    $.ajax({
+                        url: '@Url.Action("GetModelsByBrand", "Cars")',
+                        data: { brandId: brandId },
+                        type: 'GET',
+                        success: function (data) {
+                            $('#ModelId').empty();
+                            $('#ModelId').append('<option value="">Select Model</option>');
+
+                            if (data && data.length > 0) {
+                                $.each(data, function (index, model) {
+                                    $('#ModelId').append('<option value="' + model.id + '">' + model.name + '</option>');
+                                });
+                            } else {
+                                $('#ModelId').append('<option value="">No Models Available</option>');
+                            }
+                        },
+                        error: function () {
+                            console.error('Error fetching models.');
+                            $('#ModelId').empty();
+                            $('#ModelId').append('<option value="">Error fetching models</option>');
+                        }
+                    });
+                } else {
+                    $('#ModelId').prop('disabled', true); // Disable the model dropdown if no brand is selected
+                    $('#ModelId').empty();
+                    $('#ModelId').append('<option value="">Select Model</option>');
+                }
+            });
+        });
+    </script>
+}

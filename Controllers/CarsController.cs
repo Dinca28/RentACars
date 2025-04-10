@@ -1,33 +1,58 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using RentACars.Controllers;
 using RentACars.Data;
 using RentACars.Models;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 public class CarsController : Controller
 {
     private readonly ApplicationDbContext _context;
-    private readonly ILogger<HomeController> _logger;
+    private readonly ILogger<CarsController> _logger;
 
-    public CarsController(ApplicationDbContext context)
+    public CarsController(ApplicationDbContext context, ILogger<CarsController> logger)
     {
         _context = context;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger)); // Null check for logger
     }
 
     public IActionResult Index()
     {
-        var cars = _context.Cars.ToList();
+        var cars = _context.Cars
+                           .Where(c => c.BrandId.HasValue && c.ModelId.HasValue && c.CityId.HasValue && c.PricePerDay.HasValue)
+                           .ToList();
         return View(cars);
     }
-
-    // GET: Cars/PostCar
     public IActionResult PostCar()
+    {
+        var brands = _context.Brands.ToList();
+        var cities = _context.Cities.ToList();
+
+        if (brands == null || !brands.Any())
         {
-        var carModel = new Car(); // For example, if you're just creating an empty car model for the form
-        return View(carModel); // Pass the model to the view
+            _logger.LogError("Brands are null or empty");
+            return View("Error");
+        }
+
+        if (cities == null || !cities.Any())
+        {
+            _logger.LogError("Cities are null or empty");
+            return View("Error");
+        }
+
+        ViewBag.Brands = _context.Brands.ToList();
+        ViewBag.Models = _context.Models.ToList();
+        ViewBag.Cities = _context.Cities.ToList();
+
+        // Initialize a new Car object to bind the form correctly
+        var car = new Car();
+        return View(car);
     }
-    
-    // POST: Cars/PostCar
+
+
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> PostCar(Car car, IFormFile image)
@@ -36,37 +61,38 @@ public class CarsController : Controller
         {
             if (image != null && image.Length > 0)
             {
-                // Save the image to the "images" folder inside wwwroot
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", image.FileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                using (var memoryStream = new MemoryStream())
                 {
-                    await image.CopyToAsync(stream);
+                    await image.CopyToAsync(memoryStream);
+                    car.Image = memoryStream.ToArray(); // Записва изображението като байтов масив
                 }
-                car.ImageUrl = $"/images/{image.FileName}";  // Store image path in the database
             }
 
-            _context.Add(car);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index)); // Redirect to car list page
+            _context.Cars.Add(car);
+            _context.SaveChanges();
+
+            return RedirectToAction("Index", "Cars");
         }
-        return View(car);
+
+        // If the model state is not valid, re-render the form with errors
+        ViewBag.Brands = _context.Brands.ToList();
+        ViewBag.Models = _context.Models.ToList();
+        ViewBag.Cities = _context.Cities.ToList();
+
+        return View(car); // Return the form with the invalid car object
     }
 
-    [HttpPost]
-    [HttpPost]
-    public IActionResult Create(Car car)
+
+
+
+
+    // Get models based on selected brand
+    public JsonResult GetModelsByBrand(int brandId)
     {
-        if (!ModelState.IsValid)
-        {
-            return View(car);
-        }
+        var models = _context.Models
+                             .Where(m => m.BrandId == brandId)
+                             .ToList();
 
-        _context.Cars.Add(car);
-        _context.SaveChanges();
-
-        return RedirectToAction("Index");
+        return Json(models.Select(m => new { id = m.Id, name = m.Name }));
     }
-
-
-
 }
